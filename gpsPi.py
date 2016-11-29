@@ -5,6 +5,7 @@ import pika
 import socket
 import sys
 import uuid
+import time
 
 
 # class gpsRPi(object):
@@ -74,10 +75,15 @@ import uuid
 
 # try:
 while 1:
-	gpsd.connect()
-	packet = gpsd.get_current()
-	print(packet.map_url())
-	sleep(5)
+	try :
+		gpsd.connect()
+		packet = gpsd.get_current()
+		print(packet.position())
+		
+	except Exception as e: 
+		print("No fix found")
+		print(e)
+	time.sleep(5)
 	      
 # except KeyboardInterrupt:
 #     print("Closing socket and channel")
