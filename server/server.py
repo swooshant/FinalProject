@@ -15,10 +15,9 @@ port = 5672
 queue_name = "brogrammers"
 
 # Bluetooth Global data
-hostMAC = "MUST_BE_FILLED_IN"
+hostMAC = "10:02:B5:3B:D4:C6"
 port = 25
-backlog = 10
-size = 4096
+backlog = 1
 
 
 class GPSClient(object):
@@ -62,61 +61,85 @@ class GPSClient(object):
 
 class Worker(threading.Thread):
 
-    def __init__(self, sock, address):
+    def __init__(self, sock, address, threadNum):
         threading.Thread.__init__(self)
         self.sock = sock
         self.address = address
-        print("Init MongoDB")
+        self.threadNum = threadNum
+        # Configure mongodb
+        print("Thread #%d: Init MongoDB" % threadNum)
         client = pymongo.MongoClient('mongodb://localhost:27017/')
         db = client.repository
         self.collection = db.wifi
+        # Socket timeout change
+        self.sock.settimeout(30)
 
     def run(self):
         # Init an RPC Client to talk to GPS module
-        print("Create GPS RPC Client object")
+        print("Thread #%d: Create GPS RPC Client object" % self.threadNum)
         myGPSClient = GPSClient(address, port, queue_name, username, password)
 
         # Recieve the wifi payload data
-        print("Recieve a wifi data payload")
-        wifi_payload = self.sock.recv(size)
+        print("Thread #%d: Recieve a wifi data payload" % self.threadNum)
+        wifi_payload = self.recvall()
         self.sock.close()
-        print("Recieved bluetooth data: %s", wifi_payload)
+        print("Thread #%d: Recieved bluetooth data" % self.threadNum)
 
         # Get the current location from the GPS module
-        print("Make RPC call to GPS module")
+        print("Thread #%d: Make RPC call to GPS module" % self.threadNum)
         gps_payload = myGPSClient.call()
-        print("Recieved location data: %s", gps_payload)
+        print("Thread #%d: Recieved location data" % self.threadNum)
+        print(gps_payload)
 
         # Add the GPS data to the Wifi data
         final_payload = []
-        print("Create final payload")
+        print("Thread #%d: Create final payload" % self.threadNum)
         for wifi_item in wifi_payload:
             temp_item = {}
             temp_item["name"] = wifi_item["name"]
             temp_item["data"] = {**item["data"], **gps_payload}
-            print("Add new combined item to final payload")
+            print("Thread #%d: Add new combined item to final payload" %
+                  self.threadNum)
             final_payload.append(newEntry)
-            print("Inserted following new item into final payload: %s" % temp_item)
+            print("Thread #%d: Inserted following new item into final payload: %s" % (
+                self.threadNum, temp_item))
 
         # Insert the combined data into MongoDB
-        print("Insert final data into MongoDB")
+        print("Thread #%d: Insert final data into MongoDB" % self.threadNum)
         result = self.collection.insert_many(final_payload)
+
+    # Function which wraps the recv call to make sure we get the whole payload
+    def recvall(self):
+        BUFF_SIZE = 1024  # 1 KiB
+        data = b''
+        while True:
+            part = self.sock.recv(BUFF_SIZE)
+            data += part
+            if sys.getsizeof(part) < BUFF_SIZE:
+                # either 0 or end of data
+                break
+        return data
 
 
 if __name__ == '__main__':
-    print("Setting up bluetooth socket")
+    print("Master Thread: Setting up bluetooth socket")
     s = socket.socket(socket.AF_BLUETOOTH, socket.SOCK_STREAM,
                       socket.BTPROTO_RFCOMM)
     s.bind((hostMAC, port))
     s.listen(backlog)
-    print("Now listening for bluetooth connections")
+    print("Master Thread: Now listening for bluetooth connections")
+    btConnectionCnt = 1
 
-    while True:
-        print("Waiting for client to connect")
-        client, address = s.accept()
-        print("Create and spawn worker bluetooth thread")
-        myWorker = (client, address)
-        myWorker.start()
-        print("Spawned worker thread")
-
-    s.close()
+    try:
+        while True:
+            print("Master Thread: Waiting for client to connect")
+            client, address = s.accept()
+            print("Master Thread: Create and spawn worker bluetooth thread")
+            myWorker = Worker(client, address, btConnectionCnt)
+            myWorker.start()
+            print("Master Thread: Spawned worker thread number %d" %
+                  btConnectionCnt)
+            btConnectionCnt += 1
+    except KeyboardInterrupt:
+        print("Closing socket and channel")
+        s.close()
