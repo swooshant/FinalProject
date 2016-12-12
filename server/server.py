@@ -82,7 +82,7 @@ class Worker(threading.Thread):
                                       ("channel", pymongo.ASCENDING),
                                       ("position", pymongo.ASCENDING),
                                       ("time", pymongo.HASHED)],
-                                      unique=True)
+                                     unique=True)
 
         # Socket timeout change
         self.sock.setblocking(True)
