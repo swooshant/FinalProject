@@ -80,8 +80,9 @@ class Worker(threading.Thread):
                                       ("signal", pymongo.ASCENDING),
                                       ("name", pymongo.ASCENDING),
                                       ("channel", pymongo.ASCENDING),
-                                      ("position", pymongo.ASCENDING),
-                                      ("time", pymongo.HASHED)],
+                                      ("lat", pymongo.ASCENDING),
+                                      ("lon", pymongo.ASCENDING),
+                                      ("time", pymongo.ASCENDING)],
                                      unique=True)
 
         # Socket timeout change
