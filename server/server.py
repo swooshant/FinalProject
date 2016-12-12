@@ -6,18 +6,19 @@ import pika
 import socket
 import sys
 import threading
+import uuid
 
 # RabbitMQ Global data
-username = "team16"
-password = "ece4564"
-address = "MUST_BE_FILLED_IN"
+username = 'team16'
+password = 'ece4564'
+host = '172.31.89.206'
 port = 5672
-queue_name = "brogrammers"
+queue_name = 'brogrammers'
 
 # Bluetooth Global data
-hostMAC = "10:02:B5:3B:D4:C6"
+hostMAC = '10:02:B5:3B:D4:C6'
 port = 25
-backlog = 1
+backlog = 5
 
 
 class GPSClient(object):
@@ -69,55 +70,54 @@ class Worker(threading.Thread):
         # Configure mongodb
         print("Thread #%d: Init MongoDB" % threadNum)
         client = pymongo.MongoClient('mongodb://localhost:27017/')
-        db = client.repository
-        self.collection = db.wifi
+        db = client.wifidata
+        self.collection = db.accesspoints
         # Socket timeout change
-        self.sock.settimeout(30)
+        self.sock.setblocking(True)
 
     def run(self):
         # Init an RPC Client to talk to GPS module
         print("Thread #%d: Create GPS RPC Client object" % self.threadNum)
-        myGPSClient = GPSClient(address, port, queue_name, username, password)
+        myGPSClient = GPSClient('172.31.89.206', 5672, 'brogrammers', 'team16', 'ece4564')
 
         # Recieve the wifi payload data
         print("Thread #%d: Recieve a wifi data payload" % self.threadNum)
         wifi_payload = self.recvall()
+        wifi_payload = wifi_payload.decode('utf-8')
+        wifi_payload = json.loads(wifi_payload)
         self.sock.close()
         print("Thread #%d: Recieved bluetooth data" % self.threadNum)
 
         # Get the current location from the GPS module
         print("Thread #%d: Make RPC call to GPS module" % self.threadNum)
         gps_payload = myGPSClient.call()
-        print("Thread #%d: Recieved location data" % self.threadNum)
         print(gps_payload)
+        if gps_payload == b'error':
+            print("Thread #%d: GPS unable to make location lock, discarding data" % self.threadNum)
+            sys.exit()
+        gps_payload = gps_payload.decode('utf-8')
+        gps_payload = json.loads(gps_payload)
+        print("Thread #%d: Recieved location data" % self.threadNum)
 
         # Add the GPS data to the Wifi data
         final_payload = []
         print("Thread #%d: Create final payload" % self.threadNum)
         for wifi_item in wifi_payload:
-            temp_item = {}
-            temp_item["name"] = wifi_item["name"]
-            temp_item["data"] = {**item["data"], **gps_payload}
-            print("Thread #%d: Add new combined item to final payload" %
-                  self.threadNum)
+            newEntry = {**wifi_item, **gps_payload}
             final_payload.append(newEntry)
-            print("Thread #%d: Inserted following new item into final payload: %s" % (
-                self.threadNum, temp_item))
 
         # Insert the combined data into MongoDB
         print("Thread #%d: Insert final data into MongoDB" % self.threadNum)
         result = self.collection.insert_many(final_payload)
+        print("MongoDB attribute returned from insert: %s" % result)
 
     # Function which wraps the recv call to make sure we get the whole payload
     def recvall(self):
         BUFF_SIZE = 1024  # 1 KiB
         data = b''
-        while True:
+        while data[-1:] != b']':
             part = self.sock.recv(BUFF_SIZE)
             data += part
-            if sys.getsizeof(part) < BUFF_SIZE:
-                # either 0 or end of data
-                break
         return data
 
 

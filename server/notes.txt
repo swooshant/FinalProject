@@ -1,2 +1,9 @@
 The server requires a locally running instance of MongoDB which it will store entries of wifi networks discovered.
 The server also requires a running RabbitMQ server. The servers address and queue info must be updated in the file
+
+GPS JSON Keys
+position
+time
+mapURL
+-----
+error - in event of failure to lock
