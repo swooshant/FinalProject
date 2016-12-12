@@ -2,154 +2,118 @@ queue()
     .defer(d3.json, "/data")
     .await(makeGraphs);
 
-function makeGraphs(error, recordsJson) {
+function makeGraphs(error, apsJson) {
 	
-	//Clean data
-	var records = recordsJson;
+	//Clean apsJson data
+	var wifiAccessPoints = apsJson;
 	var dateFormat = d3.time.format("%Y-%m-%d %H:%M:%S");
-	
-	records.forEach(function(d) {
-		d["timestamp"] = dateFormat.parse(d["timestamp"]);
-		d["timestamp"].setMinutes(0);
-		d["timestamp"].setSeconds(0);
-		d["longitude"] = +d["longitude"];
-		d["latitude"] = +d["latitude"];
+	wifiAccessPoints.forEach(function(d) {
+		d["timestamp"] = dateFormat.parse(d["date_posted"]);
+		d["total_donations"] = +d["total_donations"];
+		d["longitude"] = +d["lon"];
+		d["latitude"] = +d["lat"];
 	});
 
 	//Create a Crossfilter instance
-	var ndx = crossfilter(records);
+	var ndx = crossfilter(wifiAccessPoints);
 
 	//Define Dimensions
-	var dateDim = ndx.dimension(function(d) { return d["timestamp"]; });
-	var genderDim = ndx.dimension(function(d) { return d["gender"]; });
-	var ageSegmentDim = ndx.dimension(function(d) { return d["age_segment"]; });
-	var phoneBrandDim = ndx.dimension(function(d) { return d["phone_brand_en"]; });
-	var locationdDim = ndx.dimension(function(d) { return d["location"]; });
+	var timeDim = ndx.dimension(function(d) { return d["timestamp"]; });
+	var encryptionDim = ndx.dimension(function(d) { return d["encryption"]; });
+	var channelDim = ndx.dimension(function(d) { return d["channel"]; });
+	var addressDim = ndx.dimension(function(d) { return d["address"]; });
+	var nameDim = ndx.dimension(function(d) { return d["name"]; });
 	var allDim = ndx.dimension(function(d) {return d;});
 
-
-	//Group Data
-	var numRecordsByDate = dateDim.group();
-	var genderGroup = genderDim.group();
-	var ageSegmentGroup = ageSegmentDim.group();
-	var phoneBrandGroup = phoneBrandDim.group();
-	var locationGroup = locationdDim.group();
+	//Define Groups
+	var numRecordsByTime = timeDim.group();
+	var encryptionGroup = encryptionDim.group();
+	var channelGroup = channelDim.group();
+	var addressGroup = addressDim.group();
+	var nameGroup = nameDim.group();
 	var all = ndx.groupAll();
 
+	//Calculate metrics
+	var numProjectsByDate = dateDim.group(); 
+	var numProjectsByResourceType = resourceTypeDim.group();
+	var numProjectsByPovertyLevel = povertyLevelDim.group();
+	var totalDonationsByState = stateDim.group().reduceSum(function(d) {
+		return d["total_donations"];
+	});
+
+	var all = ndx.groupAll();
+	var totalDonations = ndx.groupAll().reduceSum(function(d) {return d["total_donations"];});
+
+	var max_state = totalDonationsByState.top(1)[0].value;
 
 	//Define values (to be used in charts)
-	var minDate = dateDim.bottom(1)[0]["timestamp"];
-	var maxDate = dateDim.top(1)[0]["timestamp"];
-
+	var minDate = dateDim.bottom(1)[0]["date_posted"];
+	var maxDate = dateDim.top(1)[0]["date_posted"];
 
     //Charts
-    var numberRecordsND = dc.numberDisplay("#number-records-nd");
 	var timeChart = dc.barChart("#time-chart");
-	var genderChart = dc.rowChart("#gender-row-chart");
-	var ageSegmentChart = dc.rowChart("#age-segment-row-chart");
-	var phoneBrandChart = dc.rowChart("#phone-brand-row-chart");
-	var locationChart = dc.rowChart("#location-row-chart");
+	var resourceTypeChart = dc.rowChart("#resource-type-row-chart");
+	var povertyLevelChart = dc.rowChart("#poverty-level-row-chart");
+	var usChart = dc.geoChoroplethChart("#us-chart");
+	var numberProjectsND = dc.numberDisplay("#number-projects-nd");
+	var totalDonationsND = dc.numberDisplay("#total-donations-nd");
 
-
-
-	numberRecordsND
+	numberProjectsND
 		.formatNumber(d3.format("d"))
 		.valueAccessor(function(d){return d; })
 		.group(all);
 
+	totalDonationsND
+		.formatNumber(d3.format("d"))
+		.valueAccessor(function(d){return d; })
+		.group(totalDonations)
+		.formatNumber(d3.format(".3s"));
 
 	timeChart
-		.width(650)
-		.height(140)
-		.margins({top: 10, right: 50, bottom: 20, left: 20})
+		.width(600)
+		.height(160)
+		.margins({top: 10, right: 50, bottom: 30, left: 50})
 		.dimension(dateDim)
-		.group(numRecordsByDate)
+		.group(numProjectsByDate)
 		.transitionDuration(500)
 		.x(d3.time.scale().domain([minDate, maxDate]))
 		.elasticY(true)
+		.xAxisLabel("Year")
 		.yAxis().ticks(4);
 
-	genderChart
+	resourceTypeChart
         .width(300)
-        .height(100)
-        .dimension(genderDim)
-        .group(genderGroup)
-        .ordering(function(d) { return -d.value })
-        .colors(['#6baed6'])
-        .elasticX(true)
+        .height(250)
+        .dimension(resourceTypeDim)
+        .group(numProjectsByResourceType)
         .xAxis().ticks(4);
 
-	ageSegmentChart
+	povertyLevelChart
 		.width(300)
-		.height(150)
-        .dimension(ageSegmentDim)
-        .group(ageSegmentGroup)
-        .colors(['#6baed6'])
-        .elasticX(true)
-        .labelOffsetY(10)
+		.height(250)
+        .dimension(povertyLevelDim)
+        .group(numProjectsByPovertyLevel)
         .xAxis().ticks(4);
 
-	phoneBrandChart
-		.width(300)
-		.height(310)
-        .dimension(phoneBrandDim)
-        .group(phoneBrandGroup)
-        .ordering(function(d) { return -d.value })
-        .colors(['#6baed6'])
-        .elasticX(true)
-        .xAxis().ticks(4);
 
-    locationChart
-    	.width(200)
-		.height(510)
-        .dimension(locationdDim)
-        .group(locationGroup)
-        .ordering(function(d) { return -d.value })
-        .colors(['#6baed6'])
-        .elasticX(true)
-        .labelOffsetY(10)
-        .xAxis().ticks(4);
+	usChart.width(1000)
+		.height(330)
+		.dimension(stateDim)
+		.group(totalDonationsByState)
+		.colors(["#E2F2FF", "#C4E4FF", "#9ED2FF", "#81C5FF", "#6BBAFF", "#51AEFF", "#36A2FF", "#1E96FF", "#0089FF", "#0061B5"])
+		.colorDomain([0, max_state])
+		.overlayGeoJson(statesJson["features"], "state", function (d) {
+			return d.properties.name;
+		})
+		.projection(d3.geo.albersUsa()
+    				.scale(600)
+    				.translate([340, 150]))
+		.title(function (p) {
+			return "State: " + p["key"]
+					+ "\n"
+					+ "Total Donations: " + Math.round(p["value"]) + " $";
+		})
 
-    var map = L.map('map');
-
-	var drawMap = function(){
-
-	    map.setView([31.75, 110], 4);
-		mapLink = '<a href="http://openstreetmap.org">OpenStreetMap</a>';
-		L.tileLayer(
-			'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-				attribution: '&copy; ' + mapLink + ' Contributors',
-				maxZoom: 15,
-			}).addTo(map);
-
-		//HeatMap
-		var geoData = [];
-		_.each(allDim.top(Infinity), function (d) {
-			geoData.push([d["latitude"], d["longitude"], 1]);
-	      });
-		var heat = L.heatLayer(geoData,{
-			radius: 10,
-			blur: 20, 
-			maxZoom: 1,
-		}).addTo(map);
-
-	};
-
-	//Draw Map
-	drawMap();
-
-	//Update the heatmap if any dc chart get filtered
-	dcCharts = [timeChart, genderChart, ageSegmentChart, phoneBrandChart, locationChart];
-
-	_.each(dcCharts, function (dcChart) {
-		dcChart.on("filtered", function (chart, filter) {
-			map.eachLayer(function (layer) {
-				map.removeLayer(layer)
-			}); 
-			drawMap();
-		});
-	});
-
-	dc.renderAll();
+    dc.renderAll();
 
 };
