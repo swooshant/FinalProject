@@ -2,7 +2,8 @@ The server requires a locally running instance of MongoDB which it will store en
 The server also requires a running RabbitMQ server. The servers address and queue info must be updated in the file
 
 GPS JSON Keys
-position
+lat
+lon
 time
 mapURL
 -----
@@ -10,5 +11,3 @@ error - in event of failure to lock
 
 ### App frontend ###
 
-The front end is simple flask app. Flask serves up data from the DB to an index page built from a number of jinja2 templates.
-The index page uses Crossfilter.js, D3.js and DC.js, and Leaflet.js for creating the dashboard and mapping info.
