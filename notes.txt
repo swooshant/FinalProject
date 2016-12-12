@@ -7,3 +7,8 @@ time
 mapURL
 -----
 error - in event of failure to lock
+
+### App frontend ###
+
+The front end is simple flask app. Flask serves up data from the DB to an index page built from a number of jinja2 templates.
+The index page uses Crossfilter.js, D3.js and DC.js, and Leaflet.js for creating the dashboard and mapping info.
