@@ -67,18 +67,31 @@ class Worker(threading.Thread):
         self.sock = sock
         self.address = address
         self.threadNum = threadNum
+
         # Configure mongodb
         print("Thread #%d: Init MongoDB" % threadNum)
         client = pymongo.MongoClient('mongodb://localhost:27017/')
         db = client.wifidata
         self.collection = db.accesspoints
+        self.collection.create_index([("quality", pymongo.ASCENDING),
+                                      ("frequency", pymongo.ASCENDING),
+                                      ("encryption", pymongo.ASCENDING),
+                                      ("address", pymongo.TEXT),
+                                      ("signal", pymongo.ASCENDING),
+                                      ("name", pymongo.ASCENDING),
+                                      ("channel", pymongo.ASCENDING),
+                                      ("position", pymongo.ASCENDING),
+                                      ("time", pymongo.HASHED)],
+                                      unique=True)
+
         # Socket timeout change
         self.sock.setblocking(True)
 
     def run(self):
         # Init an RPC Client to talk to GPS module
         print("Thread #%d: Create GPS RPC Client object" % self.threadNum)
-        myGPSClient = GPSClient('172.31.89.206', 5672, 'brogrammers', 'team16', 'ece4564')
+        myGPSClient = GPSClient('172.31.89.206', 5672,
+                                'brogrammers', 'team16', 'ece4564')
 
         # Recieve the wifi payload data
         print("Thread #%d: Recieve a wifi data payload" % self.threadNum)
@@ -93,7 +106,8 @@ class Worker(threading.Thread):
         gps_payload = myGPSClient.call()
         print(gps_payload)
         if gps_payload == b'error':
-            print("Thread #%d: GPS unable to make location lock, discarding data" % self.threadNum)
+            print(
+                "Thread #%d: GPS unable to make location lock, discarding data" % self.threadNum)
             sys.exit()
         gps_payload = gps_payload.decode('utf-8')
         gps_payload = json.loads(gps_payload)
