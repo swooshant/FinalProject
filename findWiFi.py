@@ -22,9 +22,10 @@ def getAddr(output):
     except:
         # Otherwise, convert the payload to a JSON
         convert2JSON(listPay)
-        print("JSON Payload: \n")
+        print("JSON Payload:")
+        sleep(1)
         print(listPay)
-        print("done")
+        print("\nDone\n")
         main()
     else:
         # Grab the address
@@ -97,8 +98,14 @@ def convert2JSON(listPay):
     bridgePort = 25
     bridgeSocket = socket.socket(
         socket.AF_BLUETOOTH, socket.SOCK_STREAM, socket.BTPROTO_RFCOMM)
-    bridgeSocket.connect((bridgeMAC, bridgePort))
-    print("\nConnected \n ")
+    try:
+        bridgeSocket.connect((bridgeMAC, bridgePort))    	
+    except:
+        print("\nCould not connect to server\n")
+        exit()
+
+    print("\nConnected\n")
+
     # converts list to json
     payloadJson = json.dumps(listPay)
     # find the length of the payload
@@ -106,8 +113,8 @@ def convert2JSON(listPay):
 
     # Send json message
     result = bridgeSocket.sendall(bytes(payloadJson, "UTF-8"))
-    print("Sent payload\n")
-    sleep(5)
+    print("\nSent payload\n")
+    sleep(2)
     bridgeSocket.close()
 
 # main
