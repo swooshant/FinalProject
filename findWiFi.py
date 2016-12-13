@@ -26,7 +26,7 @@ def getAddr(output):
         sleep(1)
         print(listPay)
         print("\nDone\n")
-        main()
+        return
     else:
         # Grab the address
         address = output.split("\n", 1)[0]
@@ -122,11 +122,11 @@ def convert2JSON(listPay):
 
 def main():
     # call the scan command
-    # while True:
-    print("Scanning for WiFi... \n")
-    output = subprocess.check_output(
-            "sudo iwlist wlan1 scanning", universal_newlines=True, shell=True)
-    print("\nAll WiFi networks found \n ")
-    getAddr(output)
-    sleep(10)
+    while True:
+        print("Scanning for WiFi... \n")
+        output = subprocess.check_output(
+                "sudo iwlist wlan1 scanning", universal_newlines=True, shell=True)
+        print("\nAll WiFi networks found \n ")
+        getAddr(output)
+        sleep(10)
 main()
