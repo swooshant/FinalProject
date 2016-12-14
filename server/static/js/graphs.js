@@ -6,9 +6,9 @@ function makeGraphs(error, apsJson) {
 
     //Clean apsJson data
     var wifiAccessPoints = apsJson;
-    var dateFormat = d3.time.format("%Y-%m-%d %H:%M:%S.%L");
+    var dateFormat = d3.time.format("%Y-%m-%d %H:%M:%S");
     wifiAccessPoints.forEach(function(d) {
-        d["time"] = dateFormat.parse(d["time"]);
+        d["time"] = dateFormat.parse(d["time"].split(".")[0]);
         d["longitude"] = +d["longitude"];
         d["latitude"] = +d["latitude"];
     });
@@ -65,7 +65,7 @@ function makeGraphs(error, apsJson) {
         .group(all);
 
     timeChart
-        .width(650)
+        .width(950)
         .height(140)
         .margins({
             top: 10,
@@ -81,7 +81,7 @@ function makeGraphs(error, apsJson) {
         .yAxis().ticks(4);
 
     encryptionChart
-        .width(300)
+        .width(450)
         .height(100)
         .dimension(encryptionDim)
         .group(encryptionGroup)
@@ -93,7 +93,7 @@ function makeGraphs(error, apsJson) {
         .xAxis().ticks(4);
 
     channelChart
-        .width(300)
+        .width(450)
         .height(150)
         .dimension(channelDim)
         .group(channelGroup)
@@ -103,7 +103,7 @@ function makeGraphs(error, apsJson) {
         .xAxis().ticks(4);
 
     addressChart
-        .width(300)
+        .width(450)
         .height(310)
         .dimension(addressDim)
         .group(addressGroup)
@@ -115,7 +115,7 @@ function makeGraphs(error, apsJson) {
         .xAxis().ticks(4);
 
     nameChart
-        .width(200)
+        .width(300)
         .height(510)
         .dimension(nameDim)
         .group(nameGroup)
@@ -130,7 +130,7 @@ function makeGraphs(error, apsJson) {
     var map = L.map('map');
 
     var drawMap = function() {
-        map.setView([37.22, 80], 4);
+        map.setView([37.227670, -80.421830], 13);
         mapLink = '<a href="http://openstreetmap.org">OpenStreetMap</a>';
         L.tileLayer(
             'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
