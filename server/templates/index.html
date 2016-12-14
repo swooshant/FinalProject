@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="./static/lib/css//bootstrap.min.css">
+  <link rel="stylesheet" href="./static/lib/css/keen-dashboards.css">
+  <link rel="stylesheet" href="./static/lib/css/dc.min.css">
+  <link rel="stylesheet" href="./static/lib/css/leaflet.css">
+  <link rel="stylesheet" href="./static/css/custom.css">
+  
+
+
+</head>
+<body class="application">
+
+  <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <a class="navbar-brand" href="./">Kaggle TalkingData Interactive Visualization</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="container-fluid">
+
+    <div class="row">
+
+      <div class="col-sm-6">
+        <div class="row">
+
+          <!-- Time Chart --> 
+          <div class="col-sm-12">
+            <div class="chart-wrapper">
+              <div class="chart-title">
+                Number of Events
+              </div>
+              <div class="chart-stage">
+                <div id="time-chart"></div>
+              </div>
+            </div>
+          </div>
+          <!-- Time Chart --> 
+
+          <!-- MAC Address -->
+          <div class="col-sm-6">
+            <div class="chart-wrapper">
+              <div class="chart-title">
+                MAC Address
+              </div>
+              <div class="chart-stage">
+                <div id="address-row-chart"></div>
+              </div>
+            </div>
+          </div>
+          <!-- MAC Address -->
+
+
+          <div class="col-sm-6">
+
+            <div class="row">
+            <!-- Encryption -->
+            <div class="col-sm-12">
+              <div class="chart-wrapper">
+                <div class="chart-title">
+                  Encryption
+                </div>
+                <div class="chart-stage">
+                  <div id="encryption-row-chart"></div>
+                </div>
+              </div>
+            </div>
+            </div>
+            <!-- Encryption -->
+
+            <!-- Channel -->
+            <div class="row">
+            <div class="col-sm-12">
+              <div class="chart-wrapper">
+                <div class="chart-title">
+                  Channel
+                </div>
+                <div class="chart-stage">
+                  <div id="channel-row-chart"></div>
+                </div>
+              </div>
+            </div>
+            <!-- Channel -->
+          </div>
+          </div>
+
+
+        </div>
+      </div>
+
+
+      <div class="col-sm-2">
+        <div class="row">
+
+          <!-- Network Name -->  
+          <div class="col-sm-12">
+            <div class="chart-wrapper">
+              <div class="chart-title">
+                Network Name
+              </div>
+              <div class="chart-stage">
+                <div id="name-row-chart"></div>
+              </div>
+            </div>
+          </div>
+          <!-- Network Name -->  
+        </div>
+      </div>
+
+
+
+      <div class="col-sm-4">
+
+        <div class="row">
+          <!-- Map -->  
+          <div class="col-sm-12"> 
+            <div class="chart-wrapper">
+              <div class="chart-title">
+                Map
+              </div>
+              <div class="chart-stage">
+                <div id="map" style="width: 400px; height: 380px"></div>
+              </div>
+            </div>
+          </div>
+          <!-- Map -->  
+        </div>
+
+        <div class="row">
+          <!-- Number of events -->  
+          <div class="col-sm-12"> 
+            <div class="chart-wrapper">
+              <div class="chart-title">
+                Number of Events
+              </div>
+              <div class="chart-stage">
+                <div id="number-records-nd"></div>
+              </div>
+            </div>
+          </div>
+          <!-- Number of events -->  
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <hr>
+  <p class="small text-muted">Built with &#9829; by <a href="https://keen.io">Keen IO</a></p>
+
+  <script src="./static/lib/js/jquery.min.js"></script>
+  <script src="./static/lib/js/bootstrap.min.js"></script>
+  <script src="./static/lib/js/underscore-min.js"></script>
+  <script src="./static/lib/js/crossfilter.js"></script>
+  <script src="./static/lib/js/d3.min.js"></script>
+  <script src="./static/lib/js/dc.min.js"></script>
+  <script src="./static/lib/js/queue.js"></script>
+  <script src="./static/lib/js/leaflet.js"></script>
+  <script src="./static/lib/js/leaflet-heat.js"></script>
+  <script src="./static/lib/js/keen.min.js"></script>
+  <script src='./static/js/graphs.js' type='text/javascript'></script>
+
+
+</body>
+</html>
