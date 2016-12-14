@@ -128,5 +128,5 @@ def main():
                 "sudo iwlist wlan1 scanning", universal_newlines=True, shell=True)
         print("\nAll WiFi networks found \n ")
         getAddr(output)
-        sleep(10)
+        sleep(7)
 main()
