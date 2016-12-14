@@ -11,7 +11,7 @@ import uuid
 # RabbitMQ Global data
 username = 'team16'
 password = 'ece4564'
-host = '172.31.89.206'
+host = '172.30.124.234'
 port = 5672
 queue_name = 'brogrammers'
 
@@ -86,13 +86,13 @@ class Worker(threading.Thread):
                                      unique=True)
 
         # Socket timeout change
-        self.sock.setblocking(True)
+        #self.sock.setblocking(True)
 
     def run(self):
         # Init an RPC Client to talk to GPS module
         print("Thread #%d: Create GPS RPC Client object" % self.threadNum)
-        myGPSClient = GPSClient('172.31.89.206', 5672,
-                                'brogrammers', 'team16', 'ece4564')
+        myGPSClient = GPSClient('172.30.124.234', 5672,
+                                    'brogrammers', 'team16', 'ece4564')
 
         # Recieve the wifi payload data
         print("Thread #%d: Recieve a wifi data payload" % self.threadNum)
@@ -123,8 +123,14 @@ class Worker(threading.Thread):
 
         # Insert the combined data into MongoDB
         print("Thread #%d: Insert final data into MongoDB" % self.threadNum)
-        result = self.collection.insert_many(final_payload)
-        print("MongoDB attribute returned from insert: %s" % result)
+        try:
+            result = self.collection.insert_many(final_payload)
+            print("MongoDB attribute returned from insert: %s" % result)
+        except pymongo.errors.BulkWriteError as bwe:
+            print("Discarding duplicate entries")
+            print(vars(bwe))
+
+        return 0
 
     # Function which wraps the recv call to make sure we get the whole payload
     def recvall(self):

@@ -6,11 +6,11 @@ function makeGraphs(error, apsJson) {
 
     //Clean apsJson data
     var wifiAccessPoints = apsJson;
-    var dateFormat = d3.time.format("%Y-%m-%d %H:%M:%S");
+    var dateFormat = d3.time.format("%Y-%m-%d %H:%M:%S.%L");
     wifiAccessPoints.forEach(function(d) {
         d["time"] = dateFormat.parse(d["time"]);
-        d["longitude"] = +d["lon"];
-        d["latitude"] = +d["lat"];
+        d["longitude"] = +d["longitude"];
+        d["latitude"] = +d["latitude"];
     });
 
     //Create a Crossfilter instance
@@ -57,7 +57,7 @@ function makeGraphs(error, apsJson) {
     var nameChart = dc.rowChart("#name-row-chart");
 
     // Pass necessary parameters
-    numberProjectsND
+    numberRecordsND
         .formatNumber(d3.format("d"))
         .valueAccessor(function(d) {
             return d;
@@ -130,7 +130,7 @@ function makeGraphs(error, apsJson) {
     var map = L.map('map');
 
     var drawMap = function() {
-        map.setView([31.75, 110], 4);
+        map.setView([37.22, 80], 4);
         mapLink = '<a href="http://openstreetmap.org">OpenStreetMap</a>';
         L.tileLayer(
             'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -143,11 +143,13 @@ function makeGraphs(error, apsJson) {
         _.each(allDim.top(Infinity), function(d) {
             geoData.push([d["latitude"], d["longitude"], 1]);
         });
+	// Change for heatmap crapp
         var heat = L.heatLayer(geoData, {
             radius: 10,
             blur: 20,
             maxZoom: 1,
         }).addTo(map);
+	// End change
     };
 
     drawMap();
